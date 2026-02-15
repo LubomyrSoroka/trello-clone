@@ -50,3 +50,5 @@ server/.env
 client/.DS_Store
 client/.env
 client/.env.production
+
+*.env

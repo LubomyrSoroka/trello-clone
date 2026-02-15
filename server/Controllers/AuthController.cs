@@ -29,11 +29,7 @@ public class AuthController : ControllerBase
     private readonly int _accessTokenExpirationMinutes = 15;
     private readonly int _refreshTokenExpirationDays = 7;
 
-#if RELEASE
-                        private string websiteName = "http://18.219.52.3";
-#else
-    private string websiteName = "http://localhost:5173";
-#endif
+    private string websiteName => _secrets.ClientUrl;
 
     public AuthController(AppDbContext context, SecretsService secrets)
     {

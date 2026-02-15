@@ -7,30 +7,28 @@ using DotNetEnv;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Read secrets from environment variables
+builder.Configuration.AddEnvironmentVariables();
+var jwtSecret = builder.Configuration["JWT_SECRET"];
+var emailPassword= builder.Configuration["EMAIL_PASSWORD"];
+var email = builder.Configuration["EMAIL"];
+var clientUrl = builder.Configuration["CLIENT_URL"] ?? "http://localhost:5173";
+
 // Add CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173", "http://18.219.52.3") // frontend port
+            policy.WithOrigins(clientUrl) // frontend port
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
         });
 });
 
-// Load environment variables from .env
-Env.Load();
-
-// Read secrets from environment variables
-builder.Configuration.AddEnvironmentVariables();
-var jwtSecret = builder.Configuration["JWT_SECRET"];
-var emailPassword= builder.Configuration["EMAIL_PASSWORD"];
-var email = builder.Configuration["EMAIL"];
-
 // Optionally register a service to provide them
-builder.Services.AddSingleton(new SecretsService(jwtSecret, emailPassword, email));
+builder.Services.AddSingleton(new SecretsService(jwtSecret, emailPassword, email, clientUrl));
 
 builder.Services.AddAuthentication(options =>
 {

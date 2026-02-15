@@ -1,28 +1,21 @@
-# Use the full .NET 9 SDK image
-FROM mcr.microsoft.com/dotnet/sdk:9.0
-
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 
 # Copy csproj and restore dependencies
 COPY *.csproj ./
 RUN dotnet restore
 
-# Copy the rest of the code
+# Copy the rest of the code and publish
 COPY . ./
-
-# Install EF Core tools globally
-RUN dotnet tool install --global dotnet-ef --version 9.0.8
-ENV PATH="$PATH:/root/.dotnet/tools"
-
-# Publish the project
 RUN dotnet publish -c Release -o /app/publish
 
-WORKDIR /app/publish
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /app
+COPY --from=build /app/publish .
 
 ENV ASPNETCORE_URLS=http://+:5000
-
-# Expose the port your backend uses
 EXPOSE 5000
 
-# Run EF Core migrations first, then start the backend
-CMD dotnet ef database update --project /app --startup-project /app && dotnet server.dll
+ENTRYPOINT ["dotnet", "server.dll"]
